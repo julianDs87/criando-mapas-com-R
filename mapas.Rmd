@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+author: "Juliano Dias"
+date: "2024-01-15"
+output: beamer_presentation
+---
+
+```{r, warning- FALSE}
+
+library(tidyverse)
+library(sf)
+library(sidrar)
+library(geobr)
+library(dplyr)
+```
+
+# carregamento das coordenadas
+
+```{r}
+
+##carregar as coordenadas dos estados brasileiros
+
+mapa_brasil <- read_state( code = "all")
+```
+
+## Dados do PIB
+
+```{r}
+ 
+pib = get_sidra (api= "/t/5938/n3/all/v/37/p/all/d/v37%200") %>%
+  select("PIB"= 'Valor',
+         "name_state" = 'Unidade da Federação', 
+         Ano)
+pib$log_pib= log(pib$PIB)
+
+```
+
+```{r}
+
+## coloque primeiro os daos que tem a geolocalização
+
+dados_completo = full_join (mapa_brasil, pib, by = "name_state")
+
+```
+
+```{r, fig.height=8, fig.width=10}
+
+ggplot() +
+  geom_sf(data = dados_completo, color= "white", aes( fill = PIB)) +
+  facet_wrap(~Ano, ncol = 5)+
+  ### sacell_fill_viridis_c(option = "E", direction= -1) + #opção "D" representa ums escala discreta
+  labs(title= "PIB DOS ESTADOS BRASILEIROS")+
+         theme_minimal()
+```
+```{r, fig.height=8, fig.width=10}
+
+ggplot() + 
+  geom_sf(data = dados_completo, color= "black", aes (fill = log_pib))+
+  facet_wrap(~Ano, ncol = 5) +
+  scale_fill_viridis_c(option = "B") + ###opção "D" representa uma escala discreta
+  labs (title = "PIB dos Estados BR")+
+  theme_minimal()
+```
